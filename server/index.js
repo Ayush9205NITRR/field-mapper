@@ -10,6 +10,7 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import apiRouter from './routes/api.js';
+import { passwordGate, checkDeploymentSafety } from './lib/auth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -30,6 +31,19 @@ loadEnv();
 
 const app = express();
 app.disable('x-powered-by');
+// Managed hosts terminate TLS in front of us; trust their forwarding headers
+// so redirects and logged client IPs are correct.
+app.set('trust proxy', 1);
+
+// /health stays open so a host's uptime check does not need credentials.
+app.use(
+  passwordGate({
+    password: process.env.APP_PASSWORD,
+    username: process.env.APP_USERNAME || 'admin',
+    skip: ['/health'],
+  })
+);
+
 // CSV files are sent as text in the JSON body, so allow a generous limit.
 app.use(express.json({ limit: '50mb' }));
 
@@ -47,8 +61,17 @@ app.use((error, _req, res, _next) => {
 const port = Number(process.env.PORT) || 3000;
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`Field Mapper running at http://localhost:${port}`);
+  const unsafe = checkDeploymentSafety();
+  if (unsafe && process.env.ALLOW_PUBLIC !== 'true') {
+    console.error(`\n${unsafe}\n`);
+    process.exit(1);
+  }
+  if (unsafe) console.warn('\nWARNING: running publicly with no password.\n');
+
+  // Bind on all interfaces so container platforms can reach the process.
+  app.listen(port, '0.0.0.0', () => {
+    const locked = process.env.APP_PASSWORD ? 'password protected' : 'no password (local use)';
+    console.log(`Field Mapper listening on port ${port} - ${locked}`);
   });
 }
 

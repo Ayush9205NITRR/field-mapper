@@ -1,0 +1,21 @@
+# Render blueprint. Push this repo, then in Render: New -> Blueprint.
+# Set the secret values in the dashboard (they are marked sync:false below).
+services:
+  - type: web
+    name: field-mapper
+    runtime: node
+    plan: free
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_PASSWORD      # required — the gate on your instance
+        sync: false
+      - key: APP_USERNAME
+        value: admin
+      - key: AIRTABLE_TOKEN
+        sync: false
+      - key: KYLAS_API_KEY
+        sync: false

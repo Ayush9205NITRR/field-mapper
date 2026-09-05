@@ -26,6 +26,49 @@ cp .env.example .env    # fill in AIRTABLE_TOKEN / KYLAS_API_KEY
 
 When a key is present in `.env` the matching input disappears from the UI.
 
+## Hosting it (so you just open a link)
+
+The app is a plain Node server, so any host that runs Node works. Config files
+for the common ones are in the repo: `render.yaml`, `Procfile`, `Dockerfile`.
+
+**Render (free, no card):**
+
+1. Push this branch to GitHub.
+2. Render dashboard → **New → Blueprint** → pick the repo. It reads `render.yaml`.
+3. Fill in the environment variables it asks for: `APP_PASSWORD` (required),
+   plus `AIRTABLE_TOKEN` and `KYLAS_API_KEY` if you want them stored server-side.
+4. Deploy. You get a permanent `https://field-mapper-xxxx.onrender.com` link.
+
+Other hosts work the same way — Railway and Fly.io both detect the `Dockerfile`,
+Heroku uses the `Procfile`. Set the same environment variables in their
+dashboard and you get a URL.
+
+### The password is not optional when hosted
+
+A hosted instance holds your Airtable token and Kylas API key and can write to
+your CRM. If the link were enough to use it, anyone who found the URL could
+push data into your records.
+
+So the server **refuses to start** in a hosted environment unless `APP_PASSWORD`
+is set. Your browser then asks for it once and remembers it for the session.
+Set `APP_USERNAME` too if you want something other than `admin`.
+
+Local `npm start` is unaffected — no password, no prompt.
+
+(If you genuinely want a public instance, `ALLOW_PUBLIC=true` overrides the
+check. Only do that if no credentials are stored server-side and you accept
+that strangers can run syncs.)
+
+### Notes on free tiers
+
+Render's free tier sleeps after ~15 minutes idle, so the first load after a
+break takes 30-60 seconds to wake. Every load after that is instant. Paid tiers
+and Fly.io's free allowance stay warm.
+
+Nothing is persisted between runs — no database, no stored sync history. The
+server holds credentials in memory from its environment and nothing else, so a
+restart or redeploy loses nothing.
+
 ## The data-integrity guarantees
 
 This is the part the tool exists for.
@@ -104,8 +147,8 @@ The only runtime dependency is Express. The UI has no build step.
 npm test
 ```
 
-30 tests covering the merge engine, the CSV parser, and both workflows
-end-to-end against a stubbed HTTP layer. The workflow tests assert on the
+38 tests covering the merge engine, the CSV parser, the password gate, and
+both workflows end-to-end against a stubbed HTTP layer. The workflow tests assert on the
 actual request bodies sent to Airtable and Kylas, including that a contact
 `PUT` carries the original owner and every unmapped field, and that an upstream
 owner reassignment is surfaced as a failure.
