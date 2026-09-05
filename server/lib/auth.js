@@ -62,7 +62,8 @@ export function checkDeploymentSafety(env = process.env) {
     Boolean(env.RENDER || env.RAILWAY_ENVIRONMENT || env.FLY_APP_NAME || env.DYNO);
 
   if (!isHosted) return null;
-  if (env.APP_PASSWORD) return null;
+  // A value that is only whitespace is not a password.
+  if ((env.APP_PASSWORD || '').trim()) return null;
 
   return (
     'Refusing to start: this instance is reachable over the internet and holds ' +

@@ -35,11 +35,16 @@ app.disable('x-powered-by');
 // so redirects and logged client IPs are correct.
 app.set('trust proxy', 1);
 
+// Values pasted into a host's dashboard often pick up a trailing newline or
+// space, which would make the password never match and leave the browser
+// re-prompting forever. Trim what we compare against.
+const trimmed = (name, fallback = '') => (process.env[name] ?? fallback).trim();
+
 // /health stays open so a host's uptime check does not need credentials.
 app.use(
   passwordGate({
-    password: process.env.APP_PASSWORD,
-    username: process.env.APP_USERNAME || 'admin',
+    password: trimmed('APP_PASSWORD'),
+    username: trimmed('APP_USERNAME') || 'admin',
     skip: ['/health'],
   })
 );

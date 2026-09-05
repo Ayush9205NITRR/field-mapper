@@ -74,3 +74,16 @@ test('a hosted instance with a password boots, and local dev is unaffected', () 
   assert.equal(checkDeploymentSafety({ NODE_ENV: 'production', APP_PASSWORD: 'x' }), null);
   assert.equal(checkDeploymentSafety({}), null);
 });
+
+test('a password pasted with a trailing newline still authenticates', () => {
+  // Host dashboards commonly store the value verbatim, newline included.
+  process.env.APP_PASSWORD = 'S2DvPNKF\n';
+  const configured = (process.env.APP_PASSWORD ?? '').trim();
+  const gate = passwordGate({ password: configured, username: 'admin' });
+  assert.equal(run(gate, { authorization: basic('admin', 'S2DvPNKF') }).nexted, true);
+  delete process.env.APP_PASSWORD;
+});
+
+test('a whitespace-only password does not count as set', () => {
+  assert.match(checkDeploymentSafety({ NODE_ENV: 'production', APP_PASSWORD: '  \n' }), /not set/);
+});
