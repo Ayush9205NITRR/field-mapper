@@ -1,0 +1,17 @@
+{
+  "name": "field-mapper",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minimalist UI-driven data mapper for syncing records across CSV, Airtable and Kylas CRM with strict partial updates.",
+  "type": "module",
+  "main": "server/index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Field Mapper</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><text y='13' font-size='14'>🔗</text></svg>" />
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>Field Mapper</h1>
+      <p>Match records on a primary key and update only the fields you pick. Nothing else is touched.</p>
+    </header>
+
+    <!-- Step 0: pick a workflow -->
+    <section id="picker-section">
+      <div class="picker">
+        <button type="button" data-workflow="csv-to-airtable">
+          <strong>CSV → Airtable</strong>
+          <span>Upload a CSV and update matching Airtable records.</span>
+        </button>
+        <button type="button" data-workflow="airtable-to-kylas">
+          <strong>Airtable → Kylas</strong>
+          <span>Push Airtable columns into Kylas contacts, companies, deals or leads.</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- The stepper is rendered here once a workflow is chosen -->
+    <section id="flow" hidden></section>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
